@@ -23,7 +23,7 @@ import com.sample.mybar.BarApplication;
 import com.sample.mybar.R;
 import com.sample.mybar.api.GoogleDistanceApi;
 import com.sample.mybar.api.GooglePlacesApi;
-import com.sample.mybar.api.model.BarPresentData;
+import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.api.model.distance.Row;
 import com.sample.mybar.api.model.distance.RowsWrapper;
 import com.sample.mybar.api.model.places.Result;
@@ -38,7 +38,6 @@ import com.sample.mybar.utils.Utils;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;

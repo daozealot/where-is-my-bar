@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,10 +19,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.sample.mybar.R;
-import com.sample.mybar.api.model.BarPresentData;
-import com.sample.mybar.api.model.places.Location;
+import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.events.BarsReceivedEvent;
-import com.sample.mybar.events.DistanceReceivedEvent;
 import com.sample.mybar.events.map.UpdateCameraEvent;
 import com.sample.mybar.events.map.UpdateUiEvent;
 import com.sample.mybar.ui.PermissionCheck;
@@ -31,9 +28,6 @@ import com.sample.mybar.ui.PermissionCheck;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -180,7 +174,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             public boolean onMarkerClick(final Marker marker) {
                 if (marker.getTag() != null) {
                     BarPresentData barData = (BarPresentData) marker.getTag();
-                    marker.setSnippet(barData.distance);
+                    marker.setSnippet(
+                            String.format(
+                                    getString(R.string.distance_format),
+                                    barData.distance));
                 }
 
                 // Return false to indicate that we have not consumed the event and that we wish

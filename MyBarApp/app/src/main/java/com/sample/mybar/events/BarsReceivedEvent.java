@@ -1,6 +1,6 @@
 package com.sample.mybar.events;
 
-import com.sample.mybar.api.model.BarPresentData;
+import com.sample.mybar.utils.common.BarPresentData;
 
 import java.util.List;
 

@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sample.mybar.R;
-import com.sample.mybar.api.model.BarPresentData;
+import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.events.BarsReceivedEvent;
 import com.sample.mybar.events.DistanceReceivedEvent;
 import com.sample.mybar.ui.adapters.BarRecyclerViewAdapter;

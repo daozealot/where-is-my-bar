@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sample.mybar.R;
-import com.sample.mybar.api.model.BarPresentData;
+import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.ui.fragments.BarListFragment.OnListFragmentInteractionListener;
 
 import java.util.List;

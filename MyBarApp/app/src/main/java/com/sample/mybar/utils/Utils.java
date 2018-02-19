@@ -1,6 +1,6 @@
 package com.sample.mybar.utils;
 
-import com.sample.mybar.api.model.BarPresentData;
+import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.api.model.places.Result;
 import com.sample.mybar.api.model.places.ResultsWrapper;
 

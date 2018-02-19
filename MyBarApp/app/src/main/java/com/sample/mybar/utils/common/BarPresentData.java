@@ -1,4 +1,4 @@
-package com.sample.mybar.api.model;
+package com.sample.mybar.utils.common;
 
 import com.sample.mybar.api.model.places.Location;
 
