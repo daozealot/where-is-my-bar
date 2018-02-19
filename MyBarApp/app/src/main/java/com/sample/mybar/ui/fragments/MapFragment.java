@@ -5,21 +5,25 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.sample.mybar.R;
+import com.sample.mybar.api.model.BarPresentData;
 import com.sample.mybar.api.model.places.Location;
-import com.sample.mybar.api.model.places.Result;
 import com.sample.mybar.events.BarsReceivedEvent;
+import com.sample.mybar.events.DistanceReceivedEvent;
 import com.sample.mybar.events.map.UpdateCameraEvent;
 import com.sample.mybar.events.map.UpdateUiEvent;
 import com.sample.mybar.ui.PermissionCheck;
@@ -27,6 +31,9 @@ import com.sample.mybar.ui.PermissionCheck;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -44,6 +51,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private MapView mMapView;
     private GoogleMap mMap;
     private PermissionCheck mPermissionCheck;
+    private OnMarkerClickListener mMarkerClickListener;
+
+    public MapFragment() {
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -142,21 +153,43 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void OnMessageEvent(BarsReceivedEvent e) {
-        for(Result result: e.bars) {
-            Location location = result.geometry.location;
-            addMarker(result.name,
-                    new LatLng(location.lat, location.lng));
+        for (BarPresentData data : e.barsData) {
+            addMarker(data);
         }
     }
 
-    public void addMarker(String name, LatLng latLng) {
+    public void addMarker(BarPresentData data) {
         if (mMap == null) {
             return;
         }
 
         mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .title(name));
+                .position(new LatLng(data.location.lat, data.location.lng))
+                .title(data.name))
+                .setTag(data);
+
+        if (mMarkerClickListener == null) {
+            // Set a listener for marker click.
+            mMap.setOnMarkerClickListener(getMarkerClickListener());
+        }
+    }
+
+    private OnMarkerClickListener getMarkerClickListener() {
+        mMarkerClickListener = new OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(final Marker marker) {
+                if (marker.getTag() != null) {
+                    BarPresentData barData = (BarPresentData) marker.getTag();
+                    marker.setSnippet(barData.distance);
+                }
+
+                // Return false to indicate that we have not consumed the event and that we wish
+                // for the default behavior to occur (which is for the camera to move such that the
+                // marker is centered and for the marker's info window to open, if it has one).
+                return false;
+            }
+        };
+        return mMarkerClickListener;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -179,7 +212,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
             }
-        } catch (SecurityException e)  {
+        } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
     }

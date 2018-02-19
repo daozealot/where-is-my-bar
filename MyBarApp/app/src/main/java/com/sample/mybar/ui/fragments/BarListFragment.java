@@ -10,8 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sample.mybar.R;
-import com.sample.mybar.api.model.distance.Row;
-import com.sample.mybar.api.model.places.Result;
+import com.sample.mybar.api.model.BarPresentData;
 import com.sample.mybar.events.BarsReceivedEvent;
 import com.sample.mybar.events.DistanceReceivedEvent;
 import com.sample.mybar.ui.adapters.BarRecyclerViewAdapter;
@@ -32,8 +31,7 @@ import java.util.List;
 public class BarListFragment extends Fragment {
 
     private OnListFragmentInteractionListener mListener;
-    private List<Result> mBars;
-    private List<Row> mBarDistances;
+    private List<BarPresentData> mBars;
     private BarRecyclerViewAdapter mBarRecyclerViewAdapter;
 
     /**
@@ -47,7 +45,6 @@ public class BarListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBars = new ArrayList<>();
-        mBarDistances = new ArrayList<>();
     }
 
     @Override
@@ -57,10 +54,10 @@ public class BarListFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BarsReceivedEvent event) {
-        if (event.bars != null && mBars != null) {
+    public void onMessageEvent(BarsReceivedEvent e) {
+        if (e.barsData != null && mBars != null) {
             mBars.clear();
-            mBars.addAll(event.bars);
+            mBars.addAll(e.barsData);
             if (mBarRecyclerViewAdapter != null) {
                 mBarRecyclerViewAdapter.notifyDataSetChanged();
             }
@@ -68,13 +65,9 @@ public class BarListFragment extends Fragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(DistanceReceivedEvent event) {
-        if (event.barDistanceData != null && mBarDistances != null) {
-            // FIXME is this the right placeId?
-            mBarDistances.addAll(event.barDistanceData);
-            if (mBarRecyclerViewAdapter != null) {
-                mBarRecyclerViewAdapter.notifyDataSetChanged();
-            }
+    public void onMessageEvent(DistanceReceivedEvent e) {
+        if (mBarRecyclerViewAdapter != null) {
+            mBarRecyclerViewAdapter.notifyDataSetChanged();
         }
     }
 
@@ -88,7 +81,7 @@ public class BarListFragment extends Fragment {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            mBarRecyclerViewAdapter = new BarRecyclerViewAdapter(mBars, mBarDistances, mListener);
+            mBarRecyclerViewAdapter = new BarRecyclerViewAdapter(mBars, mListener);
             recyclerView.setAdapter(mBarRecyclerViewAdapter);
         }
         return view;
@@ -130,6 +123,6 @@ public class BarListFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // FIXME: Update argument type and name
-        void onListFragmentInteraction(Result item);
+        void onListFragmentInteraction(BarPresentData item);
     }
 }

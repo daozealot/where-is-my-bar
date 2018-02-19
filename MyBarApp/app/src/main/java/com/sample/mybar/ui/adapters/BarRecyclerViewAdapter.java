@@ -7,21 +7,18 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sample.mybar.R;
-import com.sample.mybar.api.model.distance.Row;
-import com.sample.mybar.api.model.places.Result;
+import com.sample.mybar.api.model.BarPresentData;
 import com.sample.mybar.ui.fragments.BarListFragment.OnListFragmentInteractionListener;
 
 import java.util.List;
 
 public class BarRecyclerViewAdapter extends RecyclerView.Adapter<BarRecyclerViewAdapter.ViewHolder> {
 
-    private final List<Result> mBars;
-    private final List<Row> mBarDistances;
+    private final List<BarPresentData> mBars;
     private final OnListFragmentInteractionListener mListener;
 
-    public BarRecyclerViewAdapter(List<Result> bars, List<Row> barDistances, OnListFragmentInteractionListener listener) {
+    public BarRecyclerViewAdapter(List<BarPresentData> bars, OnListFragmentInteractionListener listener) {
         mBars = bars;
-        mBarDistances = barDistances;
         mListener = listener;
     }
 
@@ -36,10 +33,7 @@ public class BarRecyclerViewAdapter extends RecyclerView.Adapter<BarRecyclerView
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mBars.get(position);
         holder.mTitleView.setText(mBars.get(position).name);
-        // TODO: add distance
-        if ((mBarDistances.size() - 1) >= position) {
-            holder.mDistanceView.setText(String.format("%s", mBarDistances.get(position).elements.get(0).distance.text));
-        }
+        holder.mDistanceView.setText(mBars.get(position).distance);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,7 +56,7 @@ public class BarRecyclerViewAdapter extends RecyclerView.Adapter<BarRecyclerView
         final View mView;
         final TextView mTitleView;
         final TextView mDistanceView;
-        Result mItem;
+        BarPresentData mItem;
 
         ViewHolder(View view) {
             super(view);

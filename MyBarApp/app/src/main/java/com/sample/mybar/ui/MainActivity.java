@@ -23,6 +23,7 @@ import com.sample.mybar.BarApplication;
 import com.sample.mybar.R;
 import com.sample.mybar.api.GoogleDistanceApi;
 import com.sample.mybar.api.GooglePlacesApi;
+import com.sample.mybar.api.model.BarPresentData;
 import com.sample.mybar.api.model.distance.Row;
 import com.sample.mybar.api.model.distance.RowsWrapper;
 import com.sample.mybar.api.model.places.Result;
@@ -33,9 +34,11 @@ import com.sample.mybar.events.map.UpdateCameraEvent;
 import com.sample.mybar.events.map.UpdateUiEvent;
 import com.sample.mybar.ui.adapters.SectionsPagerAdapter;
 import com.sample.mybar.ui.fragments.MapFragment;
+import com.sample.mybar.utils.Utils;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -217,8 +220,9 @@ public class MainActivity extends AppCompatActivity implements PermissionCheck {
                     @Override
                     public void onResponse(Call<ResultsWrapper<Result>> call, Response<ResultsWrapper<Result>> response) {
                         if (response.isSuccessful()) {
-                            EventBus.getDefault().post(new BarsReceivedEvent(response.body().results));
-                            getBarDistances(latLng, response.body().results);
+                            List<BarPresentData> barData = Utils.convertResponseToBarData(response);
+                            EventBus.getDefault().post(new BarsReceivedEvent(barData));
+                            getBarDistances(latLng, barData);
                         } else {
                             Log.d("PlacesServiceCallback", "Code: " + response.code() + " Message: " + response.message());
                         }
@@ -231,18 +235,19 @@ public class MainActivity extends AppCompatActivity implements PermissionCheck {
                 });
     }
 
-    private void getBarDistances(LatLng lastLocation, List<Result> bars) {
-        for (Result bar : bars) {
+    private void getBarDistances(LatLng lastLocation, List<BarPresentData> bars) {
+        for (final BarPresentData data : bars) {
             mRetrofit.create(GoogleDistanceApi.class)
                     .getDistance(lastLocation.latitude + "," + lastLocation.longitude,
-                            "place_id:" + bar.placeId,
+                            "place_id:" + data.placeId,
                             "walking",
                             getString(R.string.google_maps_key))
                     .enqueue(new Callback<RowsWrapper<Row>>() {
                         @Override
                         public void onResponse(Call<RowsWrapper<Row>> call, Response<RowsWrapper<Row>> response) {
-                            if (response.isSuccessful()) {
-                                EventBus.getDefault().post(new DistanceReceivedEvent(response.body().rows));
+                            if (response.isSuccessful() && response.body() != null) {
+                                data.distance = response.body().rows.get(0).elements.get(0).distance.text;
+                                EventBus.getDefault().post(new DistanceReceivedEvent());
                             } else {
                                 Log.d("DistanceServiceCallback", "Code: " + response.code() + " Message: " + response.message());
                             }
