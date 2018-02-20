@@ -19,6 +19,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.sample.mybar.R;
+import com.sample.mybar.events.map.ShowMarkerEvent;
 import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.events.BarsReceivedEvent;
 import com.sample.mybar.events.map.UpdateCameraEvent;
@@ -29,6 +30,9 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final int DEFAULT_ZOOM = 15;
@@ -38,7 +42,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
-    private static final String KEY_LOCATION = "location";
 
     private CameraPosition mCameraPosition;
 
@@ -46,6 +49,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap mMap;
     private PermissionCheck mPermissionCheck;
     private OnMarkerClickListener mMarkerClickListener;
+    private List<Marker> mListMarkers;
 
     public MapFragment() {
     }
@@ -53,6 +57,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        mListMarkers = new ArrayList<>();
 
         try {
             mPermissionCheck = (PermissionCheck) context;
@@ -129,7 +135,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MAP_DEFAULT_LAT_LNG, DEFAULT_ZOOM));
+        if (mCameraPosition != null) {
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+        } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MAP_DEFAULT_LAT_LNG, DEFAULT_ZOOM));
+        }
 
         updateLocationUi();
     }
@@ -139,10 +149,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (mMap == null) {
             return;
         }
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(e.latLng.latitude,
-                        e.latLng.longitude), DEFAULT_ZOOM));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(
+                new LatLng(e.latLng.latitude, e.latLng.longitude)), 250, null);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -156,38 +164,62 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (mMap == null) {
             return;
         }
+        final Marker marker = mMap.addMarker(
+                new MarkerOptions()
+                        .position(new LatLng(data.location.lat, data.location.lng))
+                        .title(data.name));
 
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(data.location.lat, data.location.lng))
-                .title(data.name))
-                .setTag(data);
+        marker.setTag(data);
 
-        if (mMarkerClickListener == null) {
-            // Set a listener for marker click.
-            mMap.setOnMarkerClickListener(getMarkerClickListener());
-        }
+        mListMarkers.add(marker);
+
+        // Set a listener for marker click.
+        mMap.setOnMarkerClickListener(getMarkerClickListener());
+
     }
 
     private OnMarkerClickListener getMarkerClickListener() {
-        mMarkerClickListener = new OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(final Marker marker) {
-                if (marker.getTag() != null) {
-                    BarPresentData barData = (BarPresentData) marker.getTag();
-                    marker.setSnippet(
-                            String.format(
-                                    getString(R.string.distance_format),
-                                    barData.distance));
-                }
+        if (mMarkerClickListener == null) {
+            mMarkerClickListener = new OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(final Marker marker) {
+                    if (marker.getTag() != null) {
+                        BarPresentData barData = (BarPresentData) marker.getTag();
+                        marker.setSnippet(
+                                String.format(
+                                        getString(R.string.distance_format),
+                                        barData.distance));
+                    }
 
-                // Return false to indicate that we have not consumed the event and that we wish
-                // for the default behavior to occur (which is for the camera to move such that the
-                // marker is centered and for the marker's info window to open, if it has one).
-                return false;
-            }
-        };
+                    // Return false to indicate that we have not consumed the event and that we wish
+                    // for the default behavior to occur (which is for the camera to move such that the
+                    // marker is centered and for the marker's info window to open, if it has one).
+                    return false;
+                }
+            };
+        }
         return mMarkerClickListener;
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void OnMessageEvent(ShowMarkerEvent e) {
+        if (mMap == null && e.bar != null) {
+            return;
+        }
+
+        for (final Marker marker : mListMarkers) {
+            final BarPresentData tag = (BarPresentData) marker.getTag();
+            if (tag != null && tag.equals(e.bar)) {
+                marker.setSnippet(
+                        String.format(
+                                getString(R.string.distance_format),
+                                tag.distance));
+                marker.showInfoWindow();
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()), 250, null);
+            }
+        }
+    }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(UpdateUiEvent e) {

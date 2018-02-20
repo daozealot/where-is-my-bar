@@ -9,9 +9,9 @@ import dagger.Provides;
 
 @Module
 public class AppModule {
-    private Application mApplication;
+    final Application mApplication;
 
-    AppModule(Application mApplication) {
+    public AppModule(Application mApplication) {
         this.mApplication = mApplication;
     }
 

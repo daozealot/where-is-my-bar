@@ -10,10 +10,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sample.mybar.R;
-import com.sample.mybar.utils.common.BarPresentData;
 import com.sample.mybar.events.BarsReceivedEvent;
 import com.sample.mybar.events.DistanceReceivedEvent;
+import com.sample.mybar.ui.OnListBarClickedListener;
 import com.sample.mybar.ui.adapters.BarRecyclerViewAdapter;
+import com.sample.mybar.utils.common.BarPresentData;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -25,12 +26,12 @@ import java.util.List;
 /**
  * A fragment representing a list of Bars.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnListBarClickedListener}
  * interface.
  */
 public class BarListFragment extends Fragment {
 
-    private OnListFragmentInteractionListener mListener;
+    private OnListBarClickedListener mListener;
     private List<BarPresentData> mBars;
     private BarRecyclerViewAdapter mBarRecyclerViewAdapter;
 
@@ -81,22 +82,22 @@ public class BarListFragment extends Fragment {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            mBarRecyclerViewAdapter = new BarRecyclerViewAdapter(mBars, mListener);
+            mBarRecyclerViewAdapter = new BarRecyclerViewAdapter(mBars, mListener, context);
             recyclerView.setAdapter(mBarRecyclerViewAdapter);
         }
         return view;
     }
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnListFragmentInteractionListener) {
-//            mListener = (OnListFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnListFragmentInteractionListener");
-//        }
-//    }
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnListBarClickedListener) {
+            mListener = (OnListBarClickedListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnListBarClickedListener");
+        }
+    }
 
 
     @Override
@@ -111,18 +112,4 @@ public class BarListFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnListFragmentInteractionListener {
-        // FIXME: Update argument type and name
-        void onListFragmentInteraction(BarPresentData item);
-    }
 }

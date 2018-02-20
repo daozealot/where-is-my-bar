@@ -16,9 +16,9 @@ import com.sample.mybar.ui.fragments.PlaceholderFragment;
  */
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    private static final int FIRST_PAGE = 0;
-    private static final int SECOND_PAGE = 1;
-    private static final int MAX_PAGE = 2;
+    public static final int FIRST_PAGE = 0;
+    public static final int SECOND_PAGE = 1;
+    public static final int MAX_PAGE = 2;
     private final Context mContext;
 
     public SectionsPagerAdapter(FragmentManager fm, Context context) {
